@@ -1,7 +1,7 @@
 <!-- Title -->
 <h1 align="center">Discord Command Handler</h1>
   <p align="center">
-    This is a Discord Bot Command Handler .
+    This is a Discord Bot Command Handler.
     <br />
 </h1>
 
