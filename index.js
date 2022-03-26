@@ -94,9 +94,9 @@ client.on("messageCreate", async (message) => {
 
         if (cmd.guildOnly && message.guild.id !== config.guild && message.channel.type !== "text") throw new Error("Please run any commands in your own server!");
 
-        if (cmd.permission !== null) { cmd.permission.forEach((id) => { if (!message.member.permissions.has(id)) return message.reply({ embeds: [new discord.MessageEmbed().setTitle("Error").setDescription("You do not have permission to use this command!").setColor("RED")] }) }); };
+         if (cmd.permission !== null) { cmd.permission.forEach((id) => { if (!message.member.permissions.has(id)) throw new Error("You do not have permission to use this command!") }); };
 
-        if (cmd.roles !== null) { cmd.roles.forEach((id) => { if (!message.member.roles.cache.has(id)) return message.reply({ embeds: [new discord.MessageEmbed().setTitle("Error").setDescription("You do not have permission to use this command!").setColor("RED")] }) }); };
+        if (cmd.roles !== null) { cmd.roles.forEach((id) => { if (!message.member.roles.cache.has(id)) throw new Error("You do not have permission to use this command!") }); };
 
         if (!client.cooldowns.has(cmd.name)) { client.cooldowns.set(cmd.name, new discord.Collection()); }
 
@@ -126,6 +126,8 @@ client.on("messageCreate", async (message) => {
             .setDescription(`${err.message}`)
             .setColor("RED")
         );
+        
+        message.reply({ embeds: [new discord.MessageEmbed().setTitle("Error").setDescription(err.message).setColor("RED")] })
 
     }
 });
