@@ -96,28 +96,41 @@ client.on("messageCreate", async (message) => {
 
          if (cmd.permission !== null) { cmd.permission.forEach((id) => { if (!message.member.permissions.has(id)) throw new Error("You do not have permission to use this command!") }); };
 
-        if (cmd.roles !== null) { cmd.roles.forEach((id) => { if (!message.member.roles.cache.has(id)) throw new Error("You do not have permission to use this command!") }); };
-
-        if (!client.cooldowns.has(cmd.name)) { client.cooldowns.set(cmd.name, new discord.Collection()); }
-
-        // Thanks to https://github.com/discordjs/guide/tree/v12/code-samples/command-handling/adding-features/12
-        const now = Date.now();
-        const timestamps = client.cooldowns.get(cmd.name);
-        const cooldownAmount = (cmd.cooldown || 3) * 1000;
-
-        if (timestamps.has(message.author.id)) {
-            const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
-            if (now < expirationTime) {
-                const timeLeft = (expirationTime - now) / 1000;
-                return message.reply({ embeds: [new discord.MessageEmbed().setTitle("Error").setDescription(`You have a cooldown on ${timeLeft.toFixed(1)}s.`).setColor("RED")] });
-            }
+        let hasPerms = false;
+        if (cmd.roles !== null) {
+            cmd.roles.forEach((id) => {
+                if (message.member.roles.cache.has(id)) {
+                    hasPerms = true;
+                }
+            });
+        } else {
+            hasPerms = true;
         }
 
-        timestamps.set(message.author.id, now);
-        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+        if (hasPerms) {
+            if (!client.cooldowns.has(cmd.name)) { client.cooldowns.set(cmd.name, new discord.Collection()); }
 
-        await cmd.execute(message, message.member, args, client);
+            // Thanks to https://github.com/discordjs/guide/tree/v12/code-samples/command-handling/adding-features/12
+            const now = Date.now();
+            const timestamps = client.cooldowns.get(cmd.name);
+            const cooldownAmount = (cmd.cooldown || 3) * 1000;
+
+            if (timestamps.has(message.author.id)) {
+                const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+                if (now < expirationTime) {
+                    const timeLeft = (expirationTime - now) / 1000;
+                    return message.reply({ embeds: [new discord.MessageEmbed().setTitle("Error").setDescription(`You have a cooldown on ${timeLeft.toFixed(1)}s.`).setColor("RED")] });
+                }
+            }
+
+            timestamps.set(message.author.id, now);
+            setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
+            await cmd.execute(message, message.member, args, client);
+        } else {
+            throw new Error("You do not have permission to use this command!");
+        }
 
     } catch (err) {
 
